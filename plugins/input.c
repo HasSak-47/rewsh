@@ -13,7 +13,7 @@
 #include <vectors.h>
 
 struct Input {
-    struct VectorString str;
+    struct String str;
     size_t cur; // position of the cursor inside the string
 };
 
@@ -104,33 +104,33 @@ void copy_string(struct Input* in, char* str) {
  * gets the current history element
  * and then increses the index
  */
-void next_entry(struct InputState* state) {
-    char* new = get_history(L, state->index);
+void next_entry(struct InputState* in_state) {
+    char* new = get_history(state.L, in_state->index);
 
-    set_string(&state->in, new);
-    char* next = get_history(L, state->index + 1);
+    set_string(&in_state->in, new);
+    char* next = get_history(state.L, in_state->index + 1);
     if (next == NULL)
         return;
     free(next);
 
-    state->index++;
+    in_state->index++;
 }
 
 /**
  * decreses the index and then gets the element
  */
-void prev_entry(struct InputState* state) {
-    if (state->index == 0) {
-        copy_string(&state->in, "");
+void prev_entry(struct InputState* in_state) {
+    if (in_state->index == 0) {
+        copy_string(&in_state->in, "");
         return;
     }
-    if (state->in.str.data != NULL) {
-        free(state->in.str.data);
-        state->in.str.data = NULL;
+    if (in_state->in.str.data != NULL) {
+        free(in_state->in.str.data);
+        in_state->in.str.data = NULL;
     }
-    char* new = get_history(L, state->index - 1);
-    set_string(&state->in, new);
-    state->index--;
+    char* new = get_history(state.L, in_state->index - 1);
+    set_string(&in_state->in, new);
+    in_state->index--;
 }
 
 /**

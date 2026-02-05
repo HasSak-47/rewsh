@@ -19,7 +19,8 @@
 HandleInput handle_input = NULL;
 LuaSetup lua_setup       = NULL;
 LuaCleanup lua_cleanup   = NULL;
-void* handler = NULL;
+void* handler            = NULL;
+struct ShellState state  = {};
 
 struct termios orig_termios;
 bool got_original = false;
@@ -52,7 +53,7 @@ int main(const int argc, const char* argv[]) {
     args = parse_args(argc, argv);
 
     if (is_debug(args)) {
-        debug = true;
+        state.vars.debug = true;
     }
     script = get_script(args);
     if (script != NULL) {
@@ -65,26 +66,26 @@ int main(const int argc, const char* argv[]) {
     load();
     // interaction loop
     // this is so fucking ass
-    debug_printf("running: %i\n", running);
+    debug_printf("running: %i\n", state.running);
     if (script != NULL) {
-        luaL_dofile(L, script);
+        luaL_dofile(state.L, script);
     }
     else {
-        while (running) {
-            error = 0;
+        while (state.running) {
+            state.vars.error = 0;
             debug_printf("handling input\n");
-            handle_input(L);
-            if (reload) {
+            handle_input(state.L);
+            if (state.reload) {
                 printf("reloading...\n");
                 unload();
                 load();
-                reload = false;
+                state.reload = false;
             }
             debug_printf("reloading state\n");
             get_current_state();
         }
     }
-    if (debug)
+    if (state.vars.debug)
         printf("graceful exit...\n");
     free_args(args);
     unload();
@@ -101,14 +102,12 @@ void chdir_path(struct Path* path) {
 
 void load() {
     // init blank lua state
-    L = luaL_newstate();
+    state.L = luaL_newstate();
 
-    // load dynamic symbols
-    chdir_path(&hot_path);
-    int exit = system("make hot");
+    // make plugins
+    int exit = system("make bundle");
     if (exit != 0) {
-        chdir_path(&cwd);
-        return;
+        unrecoverable_error("failed to build plugins");
     }
 
     debug_printf("loading handler and bundle\n");
@@ -131,16 +130,15 @@ void load() {
     debug_printf("lua_setup: %p\n", lua_setup);
     debug_printf("lua_input: %p\n", lua_cleanup);
 
-
     // init api
     debug_printf("initing api\n");
-    lua_setup(L);
+    lua_setup(state.L);
 
-    chdir_path(&cwd);
+    chdir_path(&state.vars.cwd);
 }
 
 void unload() {
-    lua_cleanup(L);
+    lua_cleanup(state.L);
     if (handler != NULL) {
         dlclose(handler);
         handler      = NULL;
@@ -149,5 +147,5 @@ void unload() {
         lua_cleanup  = NULL;
     }
 
-    lua_close(L);
+    lua_close(state.L);
 }

@@ -1,46 +1,78 @@
 #ifndef __STATE_H__
 #define __STATE_H__
 
+#include "utils.h"
 #ifndef INIT_PATH
 #define INIT_PATH "./init.lua"
 #endif
 
 #ifndef HOT_PATH
-#define HOT_PATH "./"
+#define HOT_PATH "./plugins"
 #endif
 
 #ifndef CONFIG_PATH
 #define CONFIG_PATH "./config.lua"
 #endif
 
-#include <stdbool.h>
 #include <lua.h>
+#include <stdbool.h>
 
-#include "./path.h"
+#include "path.h"
+#include "vectors.h"
 
-extern bool running;
-extern bool reload;
-extern lua_State* L;
+typedef void (*InputHandler)(lua_State*, struct String*);
+typedef void (*ApiLoader)(lua_State*, struct String*);
 
-// Luall.vars.config
-extern struct Path config_path;
-extern struct Path init_path;
-extern struct Path hot_path;
+struct InputHandlerPlugin {
+    InputHandler handler;
+};
+
+struct ApiPlugin {
+    ApiLoader handler;
+};
+
+struct Plugin {
+    struct String name;
+    struct Path location;
+    union {
+        struct InputHandlerPlugin input;
+        struct ApiPlugin loader;
+    } plugin;
+    enum { PLUGIN_INPUT = 1, PLUGIN_API = 2 } kind;
+};
+
+DefineVector(VectorPlugin, struct Plugin);
 
 // Luall.vars
-struct User{
+struct User {
     char* name;
     struct Path home;
 };
 
-extern struct User user;
-extern struct Path cwd;
-extern char* host;
-extern int error;
-extern bool debug;
+struct Vars {
+    struct User user;
+    struct Path cwd;
+    char* host;
+    int error;
+    bool debug;
+};
 
-// TODO:
-// Luall.vars.env
+struct Config {
+    struct Path config;
+    struct Path init;
+    struct Path plugins;
+};
+
+struct ShellState {
+    struct Vars vars;
+    struct Config config;
+    struct VectorPlugin plugins;
+    bool running;
+    bool reload;
+    lua_State* L;
+};
+
+extern struct ShellState state;
 
 void init_shell_state();
 void end_shell_state();

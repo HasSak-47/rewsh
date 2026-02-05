@@ -1,29 +1,29 @@
 #ifndef __PROCESS_H_
 #define __PROCESS_H_
 
-#include "utils.h"
 #include <stdbool.h>
 #include <unistd.h>
+#include "utils.h"
 
-struct Pipe{
+struct Pipe {
     int p[2];
 };
 
-enum BindType{
-    NoneBind = 0,
+enum BindType {
+    NoneBind  = 0,
     ReadBind  = 1,
     WriteBind = 2,
     ErrorBind = 4,
 };
 
-struct PipeBind{
+struct PipeBind {
     struct Pipe* pipe;
     enum BindType ty;
 };
 
-DefineVector(Args, char*);
+DefineVector(VectorArgs, char*);
 
-struct Command{
+struct Command {
     char* cmd;
     struct VectorArgs args;
     bool foreground;

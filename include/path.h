@@ -3,23 +3,23 @@
 
 #include "str.h"
 
-enum SegmentType{
+enum SegmentType {
     ROOT_PATH,
     PREV_PATH,
     CURR_PATH,
     NAMED_PATH,
 };
 
-struct PathSegment{
+struct PathSegment {
     struct VectorChars name;
     enum SegmentType ty;
 };
 
 #include "utils.h"
 
-DefineVector(Path, struct PathSegment);
+DefineVector(VectorPath, struct PathSegment);
 
-struct Path{
+struct Path {
     // NOTE: PRIVATE/PROTECTED!!
     struct VectorPath _inner;
 };

@@ -1,6 +1,5 @@
 build
 units
-plugins
 vgcore.*
 luall
 .env

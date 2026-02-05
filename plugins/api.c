@@ -19,7 +19,7 @@
 
 static int api_exit(lua_State* L) {
     debug_printf("ending session...\n");
-    running = false;
+    state.running = false;
     return 0;
 }
 
@@ -27,7 +27,7 @@ static int api_exit(lua_State* L) {
 // it should be just as easy as mod the variable
 // Luall.vars.debug
 static int api_set_debug(lua_State* L) {
-    debug = true;
+    state.vars.debug = true;
     lua_getglobal(L, "Luall");
     lua_getfield(L, -1, "vars");
     lua_pushboolean(L, true);
@@ -38,7 +38,7 @@ static int api_set_debug(lua_State* L) {
 }
 
 static int api_unset_debug(lua_State* L) {
-    debug = false;
+    state.vars.debug = false;
     lua_getglobal(L, "Luall");
     lua_getfield(L, -1, "vars");
     lua_pushboolean(L, false);
@@ -49,7 +49,7 @@ static int api_unset_debug(lua_State* L) {
 }
 
 static int api_reload(lua_State* L) {
-    reload = true;
+    state.reload = true;
     return 0;
 }
 
@@ -60,8 +60,8 @@ static int api_cd(lua_State* L) {
     }
     debug_printf("cd to %s\n", path);
 
-    error = chdir(path);
-    if (error != 0) {
+    state.vars.error = chdir(path);
+    if (state.vars.error != 0) {
         return 0;
     }
 
@@ -69,8 +69,8 @@ static int api_cd(lua_State* L) {
 
     if (c_path._inner.data[0].ty == ROOT_PATH) {
         chdir(path);
-        destruct_path(&cwd);
-        cwd = c_path;
+        destruct_path(&state.vars.cwd);
+        state.vars.cwd = c_path;
     }
     else {
         char* cc_path = get_path_string(c_path);
@@ -79,10 +79,10 @@ static int api_cd(lua_State* L) {
         for (size_t i = 0; i < c_path._inner.len; ++i) {
             if (c_path._inner.data[i].ty == PREV_PATH) {
                 debug_printf("prev!\n");
-                pop_segment(&cwd);
+                pop_segment(&state.vars.cwd);
             }
             else if (c_path._inner.data[i].ty == NAMED_PATH) {
-                push_segment(&cwd, c_path._inner.data[i]);
+                push_segment(&state.vars.cwd, c_path._inner.data[i]);
             }
         }
         free(c_path._inner.data);
@@ -108,7 +108,7 @@ static int api_exists(lua_State* L) {
  */
 static int api_exec(lua_State* L) {
     const size_t argc = lua_gettop(L);
-    if (debug) {
+    if (state.vars.debug) {
         printf("params:\n");
         for (size_t i = 1; i <= argc; ++i) {
             const char* arg = lua_tostring(L, i);
@@ -117,14 +117,14 @@ static int api_exec(lua_State* L) {
     }
     const char* path = lua_tostring(L, 1);
     if (path == NULL) {
-        error = -1;
+        state.vars.error = -1;
         printf("not a valid path");
         return 0;
     }
     struct Command p = new_command(path);
     command_reserve_size(&p, argc);
 
-    if (debug) {
+    if (state.vars.debug) {
         printf("argc: %lu\n", argc);
     }
     // the first command was already there!
@@ -135,7 +135,7 @@ static int api_exec(lua_State* L) {
         if (arg == NULL)
             continue;
 
-        if (debug) {
+        if (state.vars.debug) {
             printf("adding arg: %s\n", arg);
         }
         add_arg(&p, arg);
@@ -146,16 +146,16 @@ static int api_exec(lua_State* L) {
     struct stat statbuf;
     if (stat(p.cmd, &statbuf) == 0) {
         pid_t child_pid = run(&p);
-        waitpid(child_pid, &error, 0);
+        waitpid(child_pid, &state.vars.error, 0);
 
-        if (debug) {
-            printf("process ended with: %d\n", error);
+        if (state.vars.debug) {
+            printf("process ended with: %d\n", state.vars.error);
         }
         set_to_foreground();
         set_raw_mode();
     }
     else {
-        error = -1;
+        state.vars.error = -1;
         printf("file not found!\n");
     }
 
@@ -171,7 +171,7 @@ static int api_process_new(lua_State* L) {
     const size_t argc = lua_gettop(L);
     const char* path  = lua_tostring(L, 1);
     if (path == NULL) {
-        error = -1;
+        state.vars.error = -1;
         printf("not a valid path");
         return 0;
     }
@@ -204,7 +204,7 @@ static int api_process_run(lua_State* L) {
 
 static int api_process_wait(lua_State* L) {
     pid_t p = lua_tointeger(L, 1);
-    waitpid(p, &error, 0);
+    waitpid(p, &state.vars.error, 0);
 
     return 1;
 }
@@ -286,7 +286,7 @@ static int api_io_print(lua_State* L) {
 }
 
 static int api_io_debug_print(lua_State* L) {
-    if (debug)
+    if (state.vars.debug)
         return 0;
 
     api_io_debug_print(L);
@@ -353,27 +353,27 @@ static void init_pipe_metatable(lua_State* L) {
 }
 
 void init_api() {
-    init_pipe_metatable(L);
-    init_process_metatable(L);
+    init_pipe_metatable(state.L);
+    init_process_metatable(state.L);
 
-    lua_getglobal(L, "Luall");
-    lua_getfield(L, -1, "api");
-    luaL_setfuncs(L, api, 0);
+    lua_getglobal(state.L, "Luall");
+    lua_getfield(state.L, -1, "api");
+    luaL_setfuncs(state.L, api, 0);
 
-    lua_createtable(L, 0, 0);
-    lua_pushcfunction(L, api_process_new);
-    lua_setfield(L, -2, "new");
-    luaL_getmetatable(L, "process");
-    lua_setmetatable(L, -2);
+    lua_createtable(state.L, 0, 0);
+    lua_pushcfunction(state.L, api_process_new);
+    lua_setfield(state.L, -2, "new");
+    luaL_getmetatable(state.L, "process");
+    lua_setmetatable(state.L, -2);
 
-    lua_setfield(L, -2, "process");
+    lua_setfield(state.L, -2, "process");
 
-    lua_createtable(L, 0, 0);
-    lua_pushcfunction(L, api_pipe_new);
-    lua_setfield(L, -2, "new");
-    luaL_getmetatable(L, "pipe");
-    lua_setmetatable(L, -2);
+    lua_createtable(state.L, 0, 0);
+    lua_pushcfunction(state.L, api_pipe_new);
+    lua_setfield(state.L, -2, "new");
+    luaL_getmetatable(state.L, "pipe");
+    lua_setmetatable(state.L, -2);
 
-    lua_setfield(L, -2, "pipe");
-    lua_pop(L, 2);
+    lua_setfield(state.L, -2, "pipe");
+    lua_pop(state.L, 2);
 }

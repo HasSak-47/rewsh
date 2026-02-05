@@ -19,7 +19,7 @@ struct Character {
 
 char to_char(const struct Character c);
 
-DefineVector(Chars, struct Character);
+DefineVector(VectorChars, struct Character);
 
 struct VectorChars read_nstring(const char* chrs, const size_t len);
 struct VectorChars read_nstring_deter(

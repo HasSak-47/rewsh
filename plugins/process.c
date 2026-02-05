@@ -94,7 +94,7 @@ void add_arg(struct Command* cmd, const char* arg) {
  * takes an string and and clones it
  * @luabind Luall.api.Command:stdout_bind
  */
-bool stdout_bind(struct Command* cmd){
+bool stdout_bind(struct Command* cmd) {
     return false;
 };
 
@@ -108,7 +108,7 @@ bool stdout_bind(struct Command* cmd){
 pid_t run(struct Command* p) {
     // all commands must end with a trailing NULL
     add_arg(p, NULL);
-    if (debug) {
+    if (state.vars.debug) {
         debug_printf("[parent]: running command: %s", p->cmd);
         for (size_t i = 0; i < p->args.len; ++i) {
             debug_printf(" %s", p->args.data[i]);

@@ -1,5 +1,5 @@
 SRC_DIR := src
-UNI_DIR := hot
+UNI_DIR := plugins
 
 OBJ_DIR := build
 SHR_DIR := units
@@ -22,7 +22,7 @@ UFLAGS := -g -shared -I include -fPIC -Wall -Werror
 
 LDFLAGS := -o $(OUT) -export-dynamic -llua
 
-all: shell hot
+all: shell bundle
 
 build: all
 
@@ -43,9 +43,10 @@ $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
 
 run : shell
+	@echo running shell...
 	./$(OUT)
 
-hot: $(BUNDLE)
+bundle: $(BUNDLE)
 
 $(BUNDLE): $(SHRD)
 	$(C) -fPIC -shared $(SHRD) -o $(BUNDLE)
@@ -70,4 +71,4 @@ valgrind: shell
 	valgrind ./$(OUT)
 
 
-.PHONY: all clean cmds source $(OUT_RUST_LIB)
+.PHONY: all build clean cmds source bundle $(OUT_RUST_LIB)

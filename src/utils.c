@@ -12,7 +12,7 @@ void __error_msg(int line, char* file, char* fmt, char* msg, int code) {
 }
 
 void set_to_foreground() {
-    if (debug) {
+    if (state.vars.debug) {
         printf("setting to foreground\n");
     }
     const int FD = STDIN_FILENO;

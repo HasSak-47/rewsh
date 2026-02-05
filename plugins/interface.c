@@ -26,28 +26,28 @@ void update_lua_state(lua_State* L) {
     lua_getglobal(L, "Luall");
     lua_getfield(L, -1, "vars");
 
-    lua_pushinteger(L, error);
+    lua_pushinteger(L, state.vars.error);
     lua_setfield(L, -2, "error");
 
-    lua_pushboolean(L, debug);
+    lua_pushboolean(L, state.vars.debug);
     lua_setfield(L, -2, "debug");
 
-    lua_pushstring(L, host);
+    lua_pushstring(L, state.vars.host);
     lua_setfield(L, -2, "host");
 
-    char* _cwd = get_path_string(cwd);
+    char* _cwd = get_path_string(state.vars.cwd);
     lua_pushstring(L, _cwd);
     lua_setfield(L, -2, "cwd");
     free(_cwd);
 
     lua_getfield(L, -1, "user");
 
-    char* _home = get_path_string(user.home);
+    char* _home = get_path_string(state.vars.user.home);
     lua_pushstring(L, _home);
     lua_setfield(L, -2, "home");
     free(_home);
 
-    lua_pushstring(L, user.name);
+    lua_pushstring(L, state.vars.user.name);
     lua_setfield(L, -2, "name");
 
     lua_pop(L, 2);
@@ -169,11 +169,11 @@ void lua_setup(lua_State* L) {
     luaL_requiref(L, "string", luaopen_string, true);
 
     // load blueprint
-    char* _init_path = get_path_string(init_path);
+    char* _init_path = get_path_string(state.config.init);
     debug_printf("loading blueprint @ \"%s\"\n", _init_path);
     if (luaL_dofile(L, _init_path) != LUA_OK) {
         // if it doesn't load just nuke it
-        running = false;
+        state.running = false;
         unrecoverable_error("could not load init");
         free(_init_path);
         return;
@@ -214,7 +214,7 @@ void lua_cleanup(lua_State* L) {
     // there is nothing to do yet...
 }
 
-char* get_history(lua_State* state, int index) {
+char* get_history(lua_State* L, int index) {
     lua_getglobal(L, "Luall");
     lua_getfield(L, -1, "inner");
     lua_getfield(L, -1, "history");

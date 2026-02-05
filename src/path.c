@@ -108,7 +108,7 @@ void expand_path(struct Path* self, const struct Path* const cwd) {
 }
 
 char* get_path_string(const struct Path path) {
-    struct VectorString str = {};
+    struct String str = {};
     vector_reserve(str, path._inner.len * 5);
     for (size_t i = 0; i < path._inner.len; ++i) {
         switch (path._inner.data[i].ty) {

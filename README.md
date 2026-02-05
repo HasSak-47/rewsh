@@ -57,7 +57,7 @@ To build and run this project, you will need:
 - Runtime values like cwd/user/host/error/debug are pushed into `Luall.vars` each prompt cycle.
 
 ### Hot-loaded modules
-- Files in `hot/` are compiled into shared objects under `units/` and linked into `units/bundle.so`.
+- Files in `plugins/` are compiled into shared objects under `units/` and linked into `units/bundle.so`.
 - The shell `dlopen`s `bundle.so` and resolves `handle_input`, `lua_setup`, and `lua_cleanup`.
 - A reload rebuilds and re-loads the bundle when the `reload` flag is set.
 
