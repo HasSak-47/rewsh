@@ -1,7 +1,6 @@
 #include <debug.h>
 #include <process.h>
 #include <state.h>
-#include <testing.h>
 #include <utils.h>
 
 #include <errno.h>
@@ -183,35 +182,3 @@ pid_t run(struct Command* p) {
     p->args.data = NULL;
     return pid;
 }
-
-#ifdef TEST
-
-void test_process() {
-    printf("testing process...\n");
-    struct Command* cmds = malloc(sizeof(struct Command) * 2);
-
-    cmds[0] = new_command("/bin/ls");
-    add_arg(&cmds[0], "-lA");
-    add_arg(&cmds[0], "--color");
-
-    cmds[1] = new_command("/bin/wc");
-    add_arg(&cmds[1], "-l");
-
-    struct Pipe p = new_pipe();
-
-    bind_pipe(&cmds[0], &p, WriteBind);
-    bind_pipe(&cmds[1], &p, ReadBind);
-
-    pid_t pid0 = run(&cmds[0]);
-    pid_t pid1 = run(&cmds[1]);
-
-    close(p.p[0]);
-    close(p.p[1]);
-
-    waitpid(pid0, &error, 0);
-    waitpid(pid1, &error, 0);
-
-    free(cmds);
-}
-
-#endif

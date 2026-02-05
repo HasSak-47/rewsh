@@ -4,7 +4,6 @@
 #include <path.h>
 #include <state.h>
 #include <string.h>
-#include <testing.h>
 #include <utils.h>
 
 #include <lauxlib.h>
@@ -20,9 +19,6 @@
 HandleInput handle_input = NULL;
 LuaSetup lua_setup       = NULL;
 LuaCleanup lua_cleanup   = NULL;
-#ifdef TEST
-Tester tester = NULL;
-#endif
 void* handler = NULL;
 
 struct termios orig_termios;
@@ -49,10 +45,6 @@ void set_raw_mode() {
 
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
-#ifdef TEST
-int test();
-#endif
-
 int main(const int argc, const char* argv[]) {
     struct Args* args  = NULL;
     const char* script = NULL;
@@ -66,10 +58,6 @@ int main(const int argc, const char* argv[]) {
     if (script != NULL) {
         debug_printf("running scripting %s\n", script);
     }
-#ifdef TEST
-    test();
-    return 0;
-#endif
     set_raw_mode();
 
     init_shell_state();
@@ -143,12 +131,6 @@ void load() {
     debug_printf("lua_setup: %p\n", lua_setup);
     debug_printf("lua_input: %p\n", lua_cleanup);
 
-#ifdef TEST
-    tester = dlsym(handler, "__test");
-    if (tester == NULL) {
-        temporal_suicide_msg("could not load test function");
-    }
-#endif
 
     // init api
     debug_printf("initing api\n");

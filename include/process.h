@@ -41,8 +41,4 @@ void add_arg(struct Command* cmd, const char* arg);
 
 pid_t run(struct Command* p);
 
-#ifdef TEST
-void test_process();
-#endif
-
 #endif

@@ -24,6 +24,8 @@ LDFLAGS := -o $(OUT) -export-dynamic -llua
 
 all: shell hot
 
+build: all
+
 shell: $(OUT)
 
 $(OUT): $(OBJS)
@@ -69,4 +71,3 @@ valgrind: shell
 
 
 .PHONY: all clean cmds source $(OUT_RUST_LIB)
-
