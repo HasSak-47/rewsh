@@ -20,7 +20,7 @@
 #include <interface.h>
 #include <path.h>
 #include <state.h>
-#include <str.h>
+#include "string.h"
 
 void update_lua_state(lua_State* L) {
     lua_getglobal(L, "Luall");

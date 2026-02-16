@@ -4,6 +4,6 @@
 #include "./utils.h"
 
 // non null terminated string
-DefineVector(String, char)
+DefineVector(String, char);
 
 #endif

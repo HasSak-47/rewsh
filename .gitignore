@@ -1,9 +1,6 @@
-build
-units
 vgcore.*
 luall
 .env
-log.txt
 
 # python
 **/__pycache__

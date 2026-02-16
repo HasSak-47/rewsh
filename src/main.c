@@ -3,7 +3,6 @@
 #include <hot.h>
 #include <path.h>
 #include <state.h>
-#include <string.h>
 #include <utils.h>
 
 #include <lauxlib.h>
@@ -15,12 +14,6 @@
 #include <stdlib.h>
 #include <termios.h>
 #include <unistd.h>
-
-HandleInput handle_input = NULL;
-LuaSetup lua_setup       = NULL;
-LuaCleanup lua_cleanup   = NULL;
-void* handler            = NULL;
-struct ShellState state  = {};
 
 struct termios orig_termios;
 bool got_original = false;
@@ -46,7 +39,14 @@ void set_raw_mode() {
 
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
+
 int main(const int argc, const char* argv[]) {
+
+#ifdef LY_TEST
+    test_handler(argc, argv);
+    return 0;
+#endif
+
     struct Args* args  = NULL;
     const char* script = NULL;
 
@@ -59,93 +59,35 @@ int main(const int argc, const char* argv[]) {
     if (script != NULL) {
         debug_printf("running scripting %s\n", script);
     }
-    set_raw_mode();
 
     init_shell_state();
-    get_current_state();
-    load();
-    // interaction loop
-    // this is so fucking ass
-    debug_printf("running: %i\n", state.running);
-    if (script != NULL) {
-        luaL_dofile(state.L, script);
-    }
-    else {
-        while (state.running) {
-            state.vars.error = 0;
-            debug_printf("handling input\n");
-            handle_input(state.L);
-            if (state.reload) {
-                printf("reloading...\n");
-                unload();
-                load();
-                state.reload = false;
-            }
-            debug_printf("reloading state\n");
-            get_current_state();
-        }
-    }
-    if (state.vars.debug)
-        printf("graceful exit...\n");
-    free_args(args);
-    unload();
-    end_shell_state();
+
+    // set_raw_mode();
+    // // interaction loop
+    // // this is so fucking ass
+    // debug_printf("running: %i\n", state.running);
+    // if (script != NULL) {
+    //     luaL_dofile(state.L, script);
+    // }
+    // else {
+    //     while (state.running) {
+    //         state.vars.error = 0;
+    //         debug_printf("handling input\n");
+    //         handle_input(state.L);
+    //         if (state.reload) {
+    //             printf("reloading...\n");
+    //             unload();
+    //             load();
+    //             state.reload = false;
+    //         }
+    //         debug_printf("reloading state\n");
+    //         get_current_state();
+    //     }
+    // }
+    // if (state.vars.debug)
+    //     printf("graceful exit...\n");
+    // free_args(args);
+    // unload();
+    // end_shell_state();
     return 0;
-}
-
-void chdir_path(struct Path* path) {
-    char* _path = get_path_string(*path);
-    printf("changing path to: %s\n", _path);
-    chdir(_path);
-    free(_path);
-}
-
-void load() {
-    // init blank lua state
-    state.L = luaL_newstate();
-
-    // make plugins
-    int exit = system("make bundle");
-    if (exit != 0) {
-        unrecoverable_error("failed to build plugins");
-    }
-
-    debug_printf("loading handler and bundle\n");
-
-    // RTLD_LAZY because for some reason in fedora atomic
-    // inside a toolbox it doesn't load :)
-    handler = dlopen("./units/bundle.so", RTLD_LAZY);
-
-    if (handler == NULL) {
-        unrecoverable_error("could not find bundle");
-    }
-
-    handle_input = dlsym(handler, "handle_input");
-    lua_setup    = dlsym(handler, "lua_setup");
-    lua_cleanup  = dlsym(handler, "lua_cleanup");
-
-    debug_printf("symbols loaded:\n");
-    debug_printf("handler: %p\n", handler);
-    debug_printf("handle_input: %p\n", handle_input);
-    debug_printf("lua_setup: %p\n", lua_setup);
-    debug_printf("lua_input: %p\n", lua_cleanup);
-
-    // init api
-    debug_printf("initing api\n");
-    lua_setup(state.L);
-
-    chdir_path(&state.vars.cwd);
-}
-
-void unload() {
-    lua_cleanup(state.L);
-    if (handler != NULL) {
-        dlclose(handler);
-        handler      = NULL;
-        handle_input = NULL;
-        lua_setup    = NULL;
-        lua_cleanup  = NULL;
-    }
-
-    lua_close(state.L);
 }

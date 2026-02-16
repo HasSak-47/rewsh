@@ -1,10 +1,10 @@
+#include "escaped_chars.h"
 #include <stdlib.h>
-#include <str.h>
 #include <string.h>
 #include "utils.h"
 
 static void read_escape(
-    struct VectorChars* cs, const char* chrs, size_t i, const size_t len) {
+    struct EscapedChars* cs, const char* chrs, size_t i, const size_t len) {
     switch (chrs[i]) {
     // special cases
     case 'x': // hex
@@ -20,8 +20,8 @@ static void read_escape(
     }
 }
 
-struct VectorChars read_nstring(const char* chrs, const size_t len) {
-    struct VectorChars cs = {};
+struct EscapedChars read_n_escaped_chars(const char* chrs, const size_t len) {
+    struct EscapedChars cs = {};
 
     for (size_t i = 0; i < len; ++i) {
         if (chrs[i] == '\\') {
@@ -53,7 +53,7 @@ char to_char(const struct Character c) {
     }
 }
 
-char* to_cstring(const struct VectorChars chars) {
+char* escaped_chars_to_cstring(const struct EscapedChars chars) {
     char* s = malloc((chars.len + 1) * sizeof(char));
     for (size_t i = 0; i < chars.len; ++i) {
         s[i] = to_char(chars.data[i]);
@@ -63,9 +63,9 @@ char* to_cstring(const struct VectorChars chars) {
     return s;
 }
 
-struct VectorChars substring(
-    struct VectorChars v, const size_t beg, const size_t end) {
-    struct VectorChars name = {};
+struct EscapedChars escaped_chars_sub(
+    struct EscapedChars v, const size_t beg, const size_t end) {
+    struct EscapedChars name = {};
     for (size_t i = beg; i < end; ++i) {
         vector_push(name, v.data[i]);
     }
@@ -73,7 +73,7 @@ struct VectorChars substring(
     return name;
 }
 
-bool string_cmp(struct VectorChars c, const char* str) {
+bool escaped_chars_cmp(struct EscapedChars c, const char* str) {
     size_t len = strlen(str);
     size_t i   = 0;
     while (i < len && i < c.len) {

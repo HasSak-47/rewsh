@@ -2,46 +2,27 @@
 #define __STATE_H__
 
 #include "utils.h"
+
 #ifndef INIT_PATH
 #define INIT_PATH "./init.lua"
 #endif
 
-#ifndef HOT_PATH
-#define HOT_PATH "./plugins"
+#ifndef PLUGIN_PATH
+#define PLUGIN_PATH "./plugins"
+#endif
+
+#ifndef CACHE_PATH
+#define CACHE_PATH "./.ignore/cache"
 #endif
 
 #ifndef CONFIG_PATH
 #define CONFIG_PATH "./config.lua"
 #endif
-
 #include <lua.h>
 #include <stdbool.h>
 
 #include "path.h"
-#include "vectors.h"
-
-typedef void (*InputHandler)(lua_State*, struct String*);
-typedef void (*ApiLoader)(lua_State*, struct String*);
-
-struct InputHandlerPlugin {
-    InputHandler handler;
-};
-
-struct ApiPlugin {
-    ApiLoader handler;
-};
-
-struct Plugin {
-    struct String name;
-    struct Path location;
-    union {
-        struct InputHandlerPlugin input;
-        struct ApiPlugin loader;
-    } plugin;
-    enum { PLUGIN_INPUT = 1, PLUGIN_API = 2 } kind;
-};
-
-DefineVector(VectorPlugin, struct Plugin);
+#include "plugin/handler.h"
 
 // Luall.vars
 struct User {
@@ -66,7 +47,7 @@ struct Config {
 struct ShellState {
     struct Vars vars;
     struct Config config;
-    struct VectorPlugin plugins;
+    struct VectorPluginHandler plugins;
     bool running;
     bool reload;
     lua_State* L;

@@ -67,3 +67,23 @@ void __vector_clone(
     for (size_t i = 0; i < size * src->len; ++i)
         ((char*)dst->data)[i] = ((char*)src->data)[i];
 }
+
+void __vector_concat(
+    struct __Vector* a, const struct __Vector* b, const size_t size) {
+    if (b->len == 0)
+        return;
+
+    const size_t needed = a->len + b->len;
+    if (needed > a->cap) {
+        void* aux = realloc(a->data, size * needed);
+        if (aux == NULL)
+            temporal_suicide_msg("could not resize vector");
+        a->data = aux;
+        a->cap  = needed;
+    }
+
+    const size_t start = a->len * size;
+    for (size_t i = 0; i < size * b->len; ++i)
+        ((uint8_t*)a->data)[start + i] = ((uint8_t*)b->data)[i];
+    a->len = needed;
+}
