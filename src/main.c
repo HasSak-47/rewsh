@@ -17,6 +17,10 @@
 #include <termios.h>
 #include <unistd.h>
 
+#ifndef BUNDLE_EXT
+#define BUNDLE_EXT "so"
+#endif
+
 HandleInput handle_input = NULL;
 LuaSetup lua_setup       = NULL;
 LuaCleanup lua_cleanup   = NULL;
@@ -127,7 +131,7 @@ void load() {
 
     // RTLD_LAZY because for some reason in fedora atomic
     // inside a toolbox it doesn't load :)
-    handler = dlopen("./units/bundle.so", RTLD_LAZY);
+    handler = dlopen("./units/bundle." BUNDLE_EXT, RTLD_LAZY);
 
     if (handler == NULL) {
         unrecoverable_error("could not find bundle");
