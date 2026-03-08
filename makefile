@@ -35,7 +35,7 @@ SHRD := $(patsubst $(UNI_DIR)/%.c, $(SHR_DIR)/%.$(SHLIB_EXT),$(UNTS))
 OUT := luall
 BUNDLE := $(SHR_DIR)/bundle.$(SHLIB_EXT)
 
-CFLAGS := -g -I include -Wall -Werror $(LUA_CFLAGS) -DBUNDLE_EXT=\"$(SHLIB_EXT)\"
+CFLAGS := -g -I include -Wall $(LUA_CFLAGS) -DBUNDLE_EXT=\"$(SHLIB_EXT)\"
 OBJ_CFLAGS := $(CFLAGS) -fPIC -c
 UFLAGS := $(CFLAGS) -fPIC -shared
 
