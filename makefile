@@ -4,12 +4,12 @@ OBJ_DIR := .ignore/build
 
 SRCS := $(wildcard $(SRC_DIR)/*.c)
 
-OUT_RUST_LIB := $(OBJ_DIR)/libcshell.so 
-SRC_RUST_LIB := target/release/libcshell.so
+OUT_RUST_LIB := $(OBJ_DIR)/librewsh.so 
+SRC_RUST_LIB := target/release/librewsh.so
 
 OBJS := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o,$(SRCS)) $(OUT_RUST_LIB)
 
-OUT := luall
+OUT := rewsh
 
 C := gcc
 CFLAGS := -g -shared -I include -c -Wall -Werror

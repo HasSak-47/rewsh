@@ -5,18 +5,29 @@
 #define PLUGIN_FOLDER "./plugins"
 #endif
 
-#include "../ly_string.h"
+#include "../path.h"
 #include "./definitions.h"
 
 DefineVector(VectorPlugin, struct Plugin);
 
-struct PluginHandler {
+struct PluginSymbol {
     void* sym;
     struct Plugin plugin;
 };
 
-DefineVector(VectorPluginHandler, struct Plugin);
+struct Hook {
+    enum Event event;
+    Actor actor;
+};
 
-void load_plugins();
+DefineVector(VectorPluginSymbol, struct Plugin);
+DefineVector(VectorHook, struct Hook);
+
+struct PluginHandler {
+    struct VectorHook hooks;
+    struct PluginSymbol symbol;
+};
+
+void load_plugin(struct Path plugin_path);
 
 #endif

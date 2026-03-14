@@ -47,7 +47,7 @@ struct Config {
 struct ShellState {
     struct Vars vars;
     struct Config config;
-    struct VectorPluginHandler plugins;
+    struct PluginHandler plugins;
     bool running;
     bool reload;
     lua_State* L;

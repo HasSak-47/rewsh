@@ -9,10 +9,7 @@ extern "C" {
 #include <lua.h>
 #include "definitions.h"
 
-typedef int (*Actor)(lua_State* L);
-
 struct Plugin self;
-void add_hook(enum Event event, Actor);
 void load();
 void unload();
 
