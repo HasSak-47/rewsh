@@ -11,14 +11,27 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+typedef enum PluginKind {
+  PLUGIN_KIND_LUA,
+  PLUGIN_KIND_C,
+} PluginKind;
+
 typedef struct Args Args;
 
+typedef struct Plugin Plugin;
+
 void free_args(struct Args *args);
+
+struct Plugin *get_plugin(const char *path);
 
 const char *get_script(const struct Args *args);
 
 bool is_debug(const struct Args *args);
 
 struct Args *parse_args(int argc, const char *const *argv);
+
+enum PluginKind plugin_get_kind(struct Plugin *plugin);
+
+char *plugin_get_path(struct Plugin *plugin);
 
 #endif  /* __BIND_GEN__ */

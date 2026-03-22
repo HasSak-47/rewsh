@@ -2,19 +2,19 @@
 #include <lauxlib.h>
 #include <lua.h>
 
+#include <bindgen.h>
 #include <debug.h>
 #include <path.h>
 #include <state.h>
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include <dlfcn.h>
 #include <pwd.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include "ly_string.h"
-#include "utils.h"
+#include "plugin/definitions.h"
 
 struct ShellState state = {};
 
@@ -37,13 +37,61 @@ void init_shell_variables() {
 }
 
 void init_shell_config() {
-    state.config.init    = parse_path(INIT_PATH);
     state.config.plugins = parse_path(PLUGIN_PATH);
     state.config.config  = parse_path(CONFIG_PATH);
 
-    expand_path(&state.config.init, &state.vars.cwd);
     expand_path(&state.config.plugins, &state.vars.cwd);
     expand_path(&state.config.config, &state.vars.cwd);
+}
+
+struct PluginHandler load_c_plugin(lua_State* L, struct Plugin* p) {
+    struct PluginHandler handler = {};
+    handler.plugin               = p;
+    char* path_str               = plugin_get_path(handler.plugin);
+    struct Path path             = parse_path(path_str);
+    free(path_str);
+
+    dlopen();
+
+    return handler;
+}
+
+int plugin_load(lua_State* L) {
+    const char* path     = lua_tostring(L, -1);
+    struct Plugin* p     = get_plugin(path);
+    enum PluginKind kind = plugin_get_kind(p);
+
+    switch (kind) {
+    case PLUGIN_KIND_C:
+        break;
+    case PLUGIN_KIND_LUA:
+        break;
+    default:
+        break;
+
+        return 0;
+    }
+    return 1;
+}
+
+int plugin_setup(lua_State* L) {
+    return 0;
+}
+
+void init_plugin_table() {
+    lua_newtable(state.L);
+
+    /* plugins.load = l_plugins_load */
+    lua_pushcfunction(state.L, plugin_load);
+    lua_setfield(state.L, -2, "load");
+
+    /* plugins.setup = l_plugin_setup (method available via metatable) */
+    lua_pushcfunction(state.L, plugin_setup);
+    lua_setfield(state.L, -2, "setup");
+
+    /* plugins.__index = plugins (for method lookup) */
+    lua_pushvalue(state.L, -1);
+    lua_setfield(state.L, -2, "__index");
 }
 
 /**
@@ -51,16 +99,20 @@ void init_shell_config() {
  */
 void init_shell_state() {
     state.L = luaL_newstate();
+    lua_newtable(state.L);
+    init_plugin_table();
+    lua_setfield(state.L, -2, "plugin");
+    lua_pushlightuserdata(state.L, &state);
+    lua_setfield(state.L, -2, "state");
+
+    lua_setglobal(state.L, "rewsh");
 
     init_shell_variables();
     init_shell_config();
 
-    struct VectorPath plugins_paths = get_childs(&state.config.plugins);
-
-    // NOTE: upgrade to just link a c compiler into the shell instead of just
-    // using system lmao
-    for (size_t i = 0; i < plugins_paths.len; ++i) {
-    }
+    char* path = get_path_string(state.config.config);
+    luaL_dofile(state.L, path);
+    free(path);
 }
 
 /**
@@ -78,7 +130,6 @@ void end_shell_state() {
 
     destruct_path(&state.vars.cwd);
     destruct_path(&state.vars.user.home);
-    destruct_path(&state.config.init);
     destruct_path(&state.config.plugins);
     destruct_path(&state.config.config);
 

@@ -17,6 +17,7 @@ CFLAGS := -g -shared -I include -c -Wall -Werror
 LDFLAGS := -o $(OUT) -export-dynamic -llua
 
 build: $(OUT)
+rustbuild: $(OUT_RUST_LIB)
 
 $(OUT): $(OBJS)
 	$(C) $(OBJS) $(LDFLAGS)
@@ -48,4 +49,4 @@ valgrind: shell
 	valgrind ./$(OUT)
 
 
-.PHONY: build run test clean cmds source $(OUT_RUST_LIB)
+.PHONY: rustbuild build run test clean cmds source $(OUT_RUST_LIB)

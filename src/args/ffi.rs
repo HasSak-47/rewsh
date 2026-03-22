@@ -6,7 +6,7 @@ use std::{
 };
 
 #[unsafe(no_mangle)]
-unsafe extern "C" fn parse_args(argc: c_int, argv: *const *const c_char) -> *mut Args {
+pub unsafe extern "C" fn parse_args(argc: c_int, argv: *const *const c_char) -> *mut Args {
     let mut args = Vec::new();
     unsafe {
         for i in 0..(argc as usize) {
@@ -32,7 +32,7 @@ unsafe extern "C" fn is_debug(args: *const Args) -> bool {
 }
 
 #[unsafe(no_mangle)]
-unsafe extern "C" fn get_script(args: *const Args) -> *const c_char {
+pub unsafe extern "C" fn get_script(args: *const Args) -> *const c_char {
     if args.is_null() {
         return null();
     }
@@ -46,7 +46,7 @@ unsafe extern "C" fn get_script(args: *const Args) -> *const c_char {
 }
 
 #[unsafe(no_mangle)]
-unsafe extern "C" fn free_args(args: *mut Args) {
+pub unsafe extern "C" fn free_args(args: *mut Args) {
     if !args.is_null() {
         unsafe {
             drop(Box::from_raw(args));

@@ -3,10 +3,6 @@
 
 #include "utils.h"
 
-#ifndef INIT_PATH
-#define INIT_PATH "./init.lua"
-#endif
-
 #ifndef PLUGIN_PATH
 #define PLUGIN_PATH "./plugins"
 #endif
@@ -16,13 +12,31 @@
 #endif
 
 #ifndef CONFIG_PATH
-#define CONFIG_PATH "./config.lua"
+#define CONFIG_PATH "./config/init.lua"
 #endif
 #include <lua.h>
 #include <stdbool.h>
 
+#include "bindgen.h"
 #include "path.h"
-#include "plugin/handler.h"
+#include "plugin/definitions.h"
+
+typedef typeof(plugin_setup)* SetupFunction;
+typedef typeof(plugin_destruct)* DestructFunction;
+
+struct PluginHandler {
+    struct Plugin* plugin;
+    union {
+        struct {
+            void* handler;
+            SetupFunction setup;
+            DestructFunction destruct;
+        } c;
+
+        struct {
+        } lua;
+    };
+};
 
 // Luall.vars
 struct User {
@@ -40,7 +54,6 @@ struct Vars {
 
 struct Config {
     struct Path config;
-    struct Path init;
     struct Path plugins;
 };
 
