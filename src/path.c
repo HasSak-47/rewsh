@@ -32,6 +32,12 @@ void push_name(struct Path* path, const char* name) {
     vector_push(path->_inner, segment);
 }
 
+void push_name_cstring(struct Path* path, const char* name) {
+    struct PathSegment segment = build_segment(string_from_cstr(name));
+
+    vector_push(path->_inner, segment);
+}
+
 void push_name_string(struct Path* path, struct String name) {
     struct PathSegment segment = build_segment(name);
 

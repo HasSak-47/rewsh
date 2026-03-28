@@ -51,8 +51,6 @@ struct PluginHandler load_c_plugin(lua_State* L, struct Plugin* p) {
     struct Path path             = parse_path(path_str);
     free(path_str);
 
-    dlopen();
-
     return handler;
 }
 
